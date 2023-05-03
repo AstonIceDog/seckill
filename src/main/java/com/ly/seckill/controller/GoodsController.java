@@ -30,6 +30,8 @@ public class GoodsController {
 
     /**
      * @description: 跳转商品列表
+     * windows优化前qps1156
+     * linux  优化前qps400
      * @param: [session, model, ticket]
      * @return: java.lang.String
      **/

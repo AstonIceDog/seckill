@@ -29,6 +29,8 @@ public class SeckillController {
 
     /**
      * @description: 秒杀
+     * windows优化前qps:1036
+     * linux优化前qps:254
      * @param: [mode, user, goodsId]
      * @return: java.lang.String
      **/
