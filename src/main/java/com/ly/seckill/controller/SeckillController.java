@@ -11,6 +11,7 @@ import com.ly.seckill.vo.GoodsVo;
 import com.ly.seckill.vo.RespBean;
 import com.ly.seckill.vo.RespBeanEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +30,8 @@ public class SeckillController {
     private ISeckillOrderService seckillOrderService;
     @Autowired
     private IOrderService orderService;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * @description: 秒杀
@@ -67,6 +70,7 @@ public class SeckillController {
      * @description: 秒杀
      * windows优化前qps:1036
      * linux优化前qps:254
+     * windows优化后qps:2510
      * @param: [mode, user, goodsId]
      * @return: java.lang.String
      **/
@@ -76,19 +80,17 @@ public class SeckillController {
         if (user == null){
             return RespBean.error(RespBeanEnum.SESSION_ERROR);
         }
-        model.addAttribute("user", user);
         GoodsVo goods = goodsService.findGoodsVoByGoodsId(goodsId);
         //判断库存
         if (goods.getStockCount() < 1){
-            model.addAttribute("errmsg", RespBeanEnum.EMPTY_STOCK.getMessage());
             return RespBean.error(RespBeanEnum.EMPTY_STOCK);
         }
-        //判断是否重复抢购
-        SeckillOrder seckillOrder = seckillOrderService.getOne(new QueryWrapper<SeckillOrder>()
-                .eq("user_id", user.getId())
-                .eq("goods_id", goodsId));
+        //判断是否重复抢购，从redis获取
+//        SeckillOrder seckillOrder = seckillOrderService.getOne(new QueryWrapper<SeckillOrder>()
+//                .eq("user_id", user.getId())
+//                .eq("goods_id", goodsId));
+        SeckillOrder seckillOrder = (SeckillOrder)redisTemplate.opsForValue().get("order:"+user.getId()+":"+goodsId);
         if (seckillOrder!=null){
-            model.addAttribute("errmsg", RespBeanEnum.REPEAT_ERROR.getMessage());
             return RespBean.error(RespBeanEnum.REPEAT_ERROR);
         }
         Order order = orderService.seckill(user, goods);
