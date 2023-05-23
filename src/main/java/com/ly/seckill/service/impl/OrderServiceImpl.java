@@ -21,6 +21,7 @@ import com.ly.seckill.vo.OrderDetailVo;
 import com.ly.seckill.vo.RespBeanEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +34,7 @@ import javax.annotation.Resource;
 public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements IOrderService {
     @Autowired
     private ISeckillGoodsService seckillGoodsService;
-    @Resource
+    @Autowired
     private OrderMapper orderMapper;
     @Autowired
     private ISeckillOrderService seckillOrderService;
@@ -50,6 +51,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     @Transactional
     @Override
     public Order seckill(User user, GoodsVo goods) {
+        ValueOperations valueOperations = redisTemplate.opsForValue();
         //秒杀商品表减库存
         SeckillGoods seckillGoods = seckillGoodsService.getOne(new QueryWrapper<SeckillGoods>().eq("goods_id", goods.getId()));
         seckillGoods.setStockCount(seckillGoods.getStockCount() - 1);
@@ -59,10 +61,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         //判断是否重复抢购，从redis获取
         boolean result = seckillGoodsService.update(new UpdateWrapper<SeckillGoods>().setSql("stock_count = stock_count - 1")
                 .eq("goods_id", goods.getId()).gt("stock_count", 0));
-        if (!result){
+        if (seckillGoods.getStockCount() < 1){
+            valueOperations.set("isStockEmpty:" + goods.getId(), "0");
             return null;
         }
-        //生成订单
+        //生成订单表
         Order order = new Order();
         order.setUserId(user.getId());
         order.setGoodsId(goods.getId());
@@ -74,7 +77,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         order.setStatus(0);
         order.setCreateDate(new Date());
         orderMapper.insert(order);
-        //生成秒杀订单
+        //生成秒杀订单表
         SeckillOrder seckillOrder = new SeckillOrder();
         seckillOrder.setUserId(user.getId());
         seckillOrder.setOrderId(order.getId());

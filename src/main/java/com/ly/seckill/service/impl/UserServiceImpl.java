@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
 
-    @Resource
+    @Autowired
     private UserMapper userMapper;
     @Autowired
     private RedisTemplate redisTemplate;
