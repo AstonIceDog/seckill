@@ -7,13 +7,16 @@ import org.springframework.amqp.core.TopicExchange;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
 
 /*
  * @description: some description
  */
 @Configuration
 public class RabbitMQTopicConfig {
-
 //    private static final String QUEUE01="queue_topic01";
 //    private static final String QUEUE02="queue_topic02";
 //    private static final String EXCHANGE="topicExchange";

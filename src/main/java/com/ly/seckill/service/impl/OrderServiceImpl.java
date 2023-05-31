@@ -1,6 +1,7 @@
 package com.ly.seckill.service.impl;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -16,6 +17,8 @@ import com.ly.seckill.service.IGoodsService;
 import com.ly.seckill.service.IOrderService;
 import com.ly.seckill.service.ISeckillGoodsService;
 import com.ly.seckill.service.ISeckillOrderService;
+import com.ly.seckill.utils.MD5Util;
+import com.ly.seckill.utils.UUIDUtil;
 import com.ly.seckill.vo.GoodsVo;
 import com.ly.seckill.vo.OrderDetailVo;
 import com.ly.seckill.vo.RespBeanEnum;
@@ -24,6 +27,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Resource;
 
@@ -103,5 +107,40 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         detail.setOrder(order);
         detail.setGoodsVo(goodsVo);
         return detail;
+    }
+
+    /***
+     * @description: 创建秒杀地址
+     * @param: [user, goodsId]
+     * @return: java.lang.String
+     **/
+    @Override
+    public String createPath(User user, Long goodsId) {
+        String str = MD5Util.md5(UUIDUtil.uuid() + "123456");
+        redisTemplate.opsForValue().set("seckillPath:"+user.getId()+":"+goodsId, str, 60, TimeUnit.SECONDS);
+        return str;
+    }
+
+    /***
+     * @description: 校验秒杀地址
+     * @param: [user, goodsId, path]
+     * @return: java.lang.Boolean
+     **/
+    @Override
+    public Boolean checkPath(User user, Long goodsId, String path) {
+        if (user==null||goodsId<0|| StringUtils.isEmpty(path)){
+            return false;
+        }
+        String redisPath = (String) redisTemplate.opsForValue().get("seckillPath:" + user.getId() + ":" + goodsId);
+        return path.equals(redisPath);
+    }
+
+    @Override
+    public boolean checkCaptcha(User user, Long goodsId, String captcha) {
+        if (StringUtils.isEmpty(captcha) || user == null || goodsId < 0){
+            return false;
+        }
+        String redisCaptcha = (String) redisTemplate.opsForValue().get("captcha:"+user.getId()+":"+goodsId);
+        return captcha.equals(redisCaptcha);
     }
 }

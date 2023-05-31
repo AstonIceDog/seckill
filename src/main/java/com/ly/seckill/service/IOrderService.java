@@ -23,4 +23,10 @@ public interface IOrderService extends IService<Order> {
      * @return: com.ly.seckill.vo.OrderDetailVo
      **/
     OrderDetailVo detail(Long orderId);
+
+    String createPath(User user, Long goodsId);
+
+    Boolean checkPath(User user, Long goodsId, String path);
+
+    boolean checkCaptcha(User user, Long goodsId, String captcha);
 }
