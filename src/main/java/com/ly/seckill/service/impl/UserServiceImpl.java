@@ -9,7 +9,6 @@ import com.ly.seckill.service.IUserService;
 import com.ly.seckill.utils.CookieUtil;
 import com.ly.seckill.utils.MD5Util;
 import com.ly.seckill.utils.UUIDUtil;
-import com.ly.seckill.utils.ValidatorUtil;
 import com.ly.seckill.vo.LoginVo;
 import com.ly.seckill.vo.RespBean;
 import com.ly.seckill.vo.RespBeanEnum;
@@ -17,23 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
-/**
- * <p>
- * 服务实现类
- * </p>
- * 乐字节：专注线上IT培训
- * 答疑老师微信：lezijie
- *
- * @author zhoubin
- */
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
 
